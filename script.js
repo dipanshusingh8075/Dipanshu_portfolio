@@ -1,249 +1,206 @@
-/* =========================
-   CUSTOM CURSOR
-========================= */
+/* ========================================================
+   DIPANSHU PORTFOLIO — INTERACTIVE JAVASCRIPT
+======================================================== */
 
-const cursor = document.querySelector(".cursor");
-const cursorRing = document.querySelector(".cursor-ring");
-
-document.addEventListener("mousemove", (e) => {
-
-    if (cursor) {
-        cursor.style.left = e.clientX + "px";
-        cursor.style.top = e.clientY + "px";
-    }
-
-    if (cursorRing) {
-        cursorRing.animate(
-            {
-                left: e.clientX + "px",
-                top: e.clientY + "px"
-            },
-            {
-                duration: 400,
-                fill: "forwards"
-            }
-        );
-    }
-
+document.addEventListener("DOMContentLoaded", () => {
+    initMouseFollower();
+    initMobileMenu();
+    initNavbarScroll();
+    initContactForm();
 });
 
+/* ---------------------------------------------------------
+   1. AMBIENT MOUSE FOLLOWER
+--------------------------------------------------------- */
+function initMouseFollower() {
+    const mouseGlow = document.getElementById("mouseGlow");
+    if (!mouseGlow) return;
 
-/* =========================
-   CURSOR HOVER
-========================= */
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let currentX = mouseX;
+    let currentY = mouseY;
 
-const hoverElements = document.querySelectorAll(
-    "a, button, .project, .skill-row"
-);
-
-hoverElements.forEach((element) => {
-
-    element.addEventListener("mouseenter", () => {
-
-        if (cursorRing) {
-            cursorRing.style.width = "60px";
-            cursorRing.style.height = "60px";
-        }
-
+    window.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
     });
 
-    element.addEventListener("mouseleave", () => {
+    function render() {
+        // Smooth interpolation
+        currentX += (mouseX - currentX) * 0.12;
+        currentY += (mouseY - currentY) * 0.12;
 
-        if (cursorRing) {
-            cursorRing.style.width = "35px";
-            cursorRing.style.height = "35px";
-        }
+        mouseGlow.style.left = `${currentX}px`;
+        mouseGlow.style.top = `${currentY}px`;
 
-    });
-
-});
-
-
-/* =========================
-   MOBILE MENU
-========================= */
-
-const menuButton = document.querySelector(".menu-btn");
-const mobileMenu = document.querySelector(".mobile-menu");
-
-if (menuButton && mobileMenu) {
-
-    menuButton.addEventListener("click", () => {
-
-        if (mobileMenu.style.display === "flex") {
-
-            mobileMenu.style.display = "none";
-
-        } else {
-
-            mobileMenu.style.display = "flex";
-
-        }
-
-    });
-
+        requestAnimationFrame(render);
+    }
+    render();
 }
 
+/* ---------------------------------------------------------
+   2. MOBILE MENU TOGGLE
+--------------------------------------------------------- */
+function initMobileMenu() {
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+    const menuIcon = document.getElementById("menuIcon");
+    const closeIcon = document.getElementById("closeIcon");
+    const navLinks = document.querySelectorAll(".mobile-nav-link");
 
-document.querySelectorAll(".mobile-menu a").forEach((link) => {
+    if (!mobileMenuBtn || !mobileMenu) return;
 
-    link.addEventListener("click", () => {
-
-        if (mobileMenu) {
-            mobileMenu.style.display = "none";
+    function toggleMenu() {
+        const isHidden = mobileMenu.classList.contains("hidden");
+        if (isHidden) {
+            mobileMenu.classList.remove("hidden");
+            mobileMenu.classList.add("flex");
+            menuIcon.classList.add("hidden");
+            closeIcon.classList.remove("hidden");
+        } else {
+            mobileMenu.classList.add("hidden");
+            mobileMenu.classList.remove("flex");
+            menuIcon.classList.remove("hidden");
+            closeIcon.classList.add("hidden");
         }
+    }
 
+    mobileMenuBtn.addEventListener("click", toggleMenu);
+
+    navLinks.forEach(link => {
+        link.addEventListener("click", () => {
+            mobileMenu.classList.add("hidden");
+            mobileMenu.classList.remove("flex");
+            menuIcon.classList.remove("hidden");
+            closeIcon.classList.add("hidden");
+        });
     });
+}
 
-});
+/* ---------------------------------------------------------
+   3. NAVBAR SHRINK ON SCROLL
+--------------------------------------------------------- */
+function initNavbarScroll() {
+    const mainHeader = document.getElementById("mainHeader");
+    if (!mainHeader) return;
 
-
-/* =========================
-   SCROLL REVEAL
-========================= */
-
-const revealElements =
-    document.querySelectorAll(".reveal");
-
-const revealObserver =
-    new IntersectionObserver(
-
-        (entries) => {
-
-            entries.forEach((entry) => {
-
-                if (entry.isIntersecting) {
-
-                    entry.target.classList.add("visible");
-
-                    revealObserver.unobserve(
-                        entry.target
-                    );
-
-                }
-
-            });
-
-        },
-
-        {
-            threshold: 0.15
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 40) {
+            mainHeader.classList.add("scrolled");
+        } else {
+            mainHeader.classList.remove("scrolled");
         }
+    });
+}
 
-    );
+/* ---------------------------------------------------------
+   4. CONTACT FORM LOGIC
+--------------------------------------------------------- */
+function initContactForm() {
+    const form = document.getElementById("portfolioContactForm");
+    if (!form) return;
 
-
-revealElements.forEach((element) => {
-
-    revealObserver.observe(element);
-
-});
-
-
-/* =========================
-   PARALLAX HERO
-========================= */
-
-const visual = document.querySelector(".visual-frame");
-
-document.addEventListener("mousemove", (e) => {
-
-    if (!visual) return;
-
-    const x =
-        (window.innerWidth / 2 - e.clientX) / 50;
-
-    const y =
-        (window.innerHeight / 2 - e.clientY) / 50;
-
-    visual.style.transform =
-        `rotateY(${-x}deg) rotateX(${y}deg)`;
-
-});
-
-
-/* =========================
-   CONTACT FORM
-========================= */
-
-const form =
-    document.getElementById("contactForm");
-
-if (form) {
+    const submitBtn = document.getElementById("submitBtn");
+    const submitBtnText = document.getElementById("submitBtnText");
 
     form.addEventListener("submit", (e) => {
-
         e.preventDefault();
 
-        const button =
-            form.querySelector("button");
+        const name = document.getElementById("senderName").value.trim();
+        const email = document.getElementById("senderEmail").value.trim();
+        const subject = document.getElementById("messageSubject").value.trim() || "Portfolio Inquiry";
+        const message = document.getElementById("senderMessage").value.trim();
 
-        if (button) {
-
-            button.innerHTML =
-                "MESSAGE SENT ✓";
-
-            setTimeout(() => {
-
-                button.innerHTML =
-                    'SEND MESSAGE <span>↗</span>';
-
-                form.reset();
-
-            }, 3000);
-
+        if (!name || !email || !message) {
+            showToast("Please fill in all required fields.");
+            return;
         }
 
-    });
+        // Visual feedback
+        submitBtn.disabled = true;
+        const originalText = submitBtnText.textContent;
+        submitBtnText.textContent = "Opening Email Client...";
 
+        // Generate mailto link
+        const emailBody = `Hi Dipanshu,\n\nMy name is ${name} (${email}).\n\nMessage:\n${message}\n\nBest regards,\n${name}`;
+        const mailtoUrl = `mailto:dipanshukumar8075@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+
+        // Open user's default email client
+        window.location.href = mailtoUrl;
+
+        showToast("Opening email client! Thanks for reaching out.");
+
+        setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtnText.textContent = "Message Prepared ✓";
+            form.reset();
+
+            setTimeout(() => {
+                submitBtnText.textContent = originalText;
+            }, 3000);
+        }, 1000);
+    });
 }
 
+/* ---------------------------------------------------------
+   5. SEND VIA WHATSAPP HELPER
+--------------------------------------------------------- */
+function sendViaWhatsApp() {
+    const name = document.getElementById("senderName") ? document.getElementById("senderName").value.trim() : "";
+    const email = document.getElementById("senderEmail") ? document.getElementById("senderEmail").value.trim() : "";
+    const subject = document.getElementById("messageSubject") ? document.getElementById("messageSubject").value.trim() : "";
+    const message = document.getElementById("senderMessage") ? document.getElementById("senderMessage").value.trim() : "";
 
-/* =========================
-   PROJECT TILT
-========================= */
+    let whatsappText = "Hello Dipanshu! ";
+    if (name) {
+        whatsappText += `I am ${name}. `;
+    }
+    if (email) {
+        whatsappText += `(Email: ${email}). `;
+    }
+    if (subject) {
+        whatsappText += `Regarding: ${subject}. `;
+    }
+    if (message) {
+        whatsappText += `Message: ${message}`;
+    } else {
+        whatsappText += "I checked your portfolio and would like to connect!";
+    }
 
-const projects =
-    document.querySelectorAll(".project-visual");
+    const waUrl = `https://wa.me/918873384577?text=${encodeURIComponent(whatsappText)}`;
+    window.open(waUrl, "_blank");
+}
 
-projects.forEach((project) => {
-
-    project.addEventListener("mousemove", (e) => {
-
-        const rect =
-            project.getBoundingClientRect();
-
-        const x =
-            e.clientX - rect.left;
-
-        const y =
-            e.clientY - rect.top;
-
-        const centerX =
-            rect.width / 2;
-
-        const centerY =
-            rect.height / 2;
-
-        const rotateX =
-            (y - centerY) / 40;
-
-        const rotateY =
-            (centerX - x) / 40;
-
-        project.style.transform =
-            `perspective(1000px)
-             rotateX(${rotateX}deg)
-             rotateY(${rotateY}deg)`;
-
+/* ---------------------------------------------------------
+   6. COPY TO CLIPBOARD & TOAST
+--------------------------------------------------------- */
+function copyToClipboard(text, customMessage = "Copied to clipboard!") {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast(customMessage);
+    }).catch(() => {
+        // Fallback for older browsers
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        showToast(customMessage);
     });
+}
 
+function showToast(message) {
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toastMessage");
+    if (!toast || !toastMessage) return;
 
-    project.addEventListener("mouseleave", () => {
+    toastMessage.textContent = message;
+    toast.classList.remove("translate-y-20", "opacity-0", "pointer-events-none");
+    toast.classList.add("translate-y-0", "opacity-100");
 
-        project.style.transform =
-            "perspective(1000px) rotateX(0) rotateY(0)";
-
-    });
-
-});
+    setTimeout(() => {
+        toast.classList.remove("translate-y-0", "opacity-100");
+        toast.classList.add("translate-y-20", "opacity-0", "pointer-events-none");
+    }, 3200);
+}
