@@ -1,83 +1,154 @@
 /* ========================================================
-   DIPANSHU PORTFOLIO — CUSTOM STYLES & ACCENTS
-   Theme: Minimalist Dark Luxury / Cyber Aesthetic
+   DIPANSHU PORTFOLIO — 3D & CINEMATIC DESIGN SYSTEM
+   Direction: Deep Obsidian, Cyber Cyan, Subtle 3D Depth
 ======================================================== */
 
-@layer utilities {
-    /* Background subtle tech grid */
-    .bg-grid-pattern {
-        background-size: 40px 40px;
-        background-image: 
-            linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    }
+:root {
+    --bg-deep: #060709;
+    --bg-surface: #0c0e14;
+    --bg-card: #11131c;
+    --border-subtle: rgba(255, 255, 255, 0.07);
+    --border-glow: rgba(6, 182, 212, 0.35);
+    --accent-cyan: #06b6d4;
+    --accent-violet: #8b5cf6;
+    --accent-emerald: #10b981;
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 7px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #08080b;
+    background: #060709;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #1e1e28;
+    background: #1a1d29;
     border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #10b981;
+    background: #06b6d4;
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-    background: rgba(17, 17, 24, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+/* Subtle Technical Grid Background */
+.bg-grid-mesh {
+    background-size: 50px 50px;
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+
+/* 3D Perspective Containers */
+.perspective-container {
+    perspective: 1200px;
+    transform-style: preserve-3d;
+}
+
+/* Glassmorphism 3D Surface */
+.glass-card-3d {
+    background: linear-gradient(135deg, rgba(17, 19, 28, 0.85) 0%, rgba(12, 14, 20, 0.7) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 
+        0 15px 35px -10px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-color 0.25s ease;
+    will-change: transform;
 }
 
-/* Skill Tags styling */
-.skill-tag {
+.glass-card-3d:hover {
+    border-color: rgba(6, 182, 212, 0.3);
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.8),
+        0 0 30px rgba(6, 182, 212, 0.12),
+        0 0 0 1px rgba(6, 182, 212, 0.2) inset;
+}
+
+/* Tilt Card Child Preservation */
+.tilt-card {
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out;
+}
+
+.tilt-inner-depth {
+    transform: translateZ(30px);
+    transform-style: preserve-3d;
+}
+
+/* Tech Badges with 3D Depth */
+.tech-badge-3d {
     display: inline-flex;
     align-items: center;
-    padding: 0.35rem 0.75rem;
-    border-radius: 0.6rem;
-    background-color: #161622;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 0.5rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 0.75rem;
+    background: rgba(18, 21, 30, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     color: #e2e8f0;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-family: 'JetBrains Mono', monospace;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.skill-tag:hover {
-    background-color: #1f1f2e;
-    border-color: rgba(16, 185, 129, 0.4);
-    color: #34d399;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+.tech-badge-3d:hover {
+    background: rgba(24, 28, 42, 0.95);
+    border-color: rgba(6, 182, 212, 0.5);
+    color: #38bdf8;
+    transform: translateY(-2px) translateZ(10px);
+    box-shadow: 0 6px 18px rgba(6, 182, 212, 0.15);
 }
 
-/* Interactive Card Hover Glows */
-.hover-glow {
-    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+/* Cinematic Button Hover */
+.btn-cinematic {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.hover-glow:hover {
-    border-color: rgba(16, 185, 129, 0.3);
-    box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.15);
+.btn-cinematic::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.6s ease;
 }
 
-/* Smooth Focus states */
-input:focus, textarea:focus {
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+.btn-cinematic:hover::after {
+    left: 140%;
 }
 
-/* Navbar active state transition */
-#mainHeader.scrolled {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+/* Accessibility: Focus visible styling */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid #06b6d4;
+    outline-offset: 3px;
+}
+
+/* Reduce Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .tilt-card {
+        transform: none !important;
+    }
 }

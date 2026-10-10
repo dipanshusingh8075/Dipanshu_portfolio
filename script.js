@@ -1,16 +1,167 @@
 /* ========================================================
-   DIPANSHU PORTFOLIO — INTERACTIVE JAVASCRIPT
+   DIPANSHU PORTFOLIO — 3D INTERACTIVE JAVASCRIPT
+   Features:
+   1. Lightweight 3D Particle Canvas Background
+   2. Interactive 3D Card Tilt on Mouse Move
+   3. Smooth Mouse Ambient Spotlight
+   4. ScrollSpy Navigation Tracker
+   5. Mobile Drawer Menu with ARIA states
+   6. Contact Form (FormSubmit AJAX + WhatsApp fallback)
+   7. Copy to Clipboard with Toast Notification
 ======================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
+    initParticleCanvas();
+    init3DTilt();
     initMouseFollower();
     initMobileMenu();
-    initNavbarScroll();
+    initNavbarScrollSpy();
     initContactForm();
 });
 
 /* ---------------------------------------------------------
-   1. AMBIENT MOUSE FOLLOWER
+   1. 3D PARTICLE CONSTELLATION CANVAS
+--------------------------------------------------------- */
+function initParticleCanvas() {
+    const canvas = document.getElementById("canvas3d");
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    let width, height;
+    let particles = [];
+    const particleCount = window.innerWidth < 768 ? 32 : 55;
+    let mouse = { x: null, y: null, targetX: 0, targetY: 0 };
+
+    // Reduced motion check
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    // Particle Object
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 0.45;
+            this.vy = (Math.random() - 0.5) * 0.45;
+            this.radius = Math.random() * 1.8 + 0.8;
+            this.color = Math.random() > 0.4 ? "rgba(6, 182, 212, " : "rgba(139, 92, 246, ";
+            this.alpha = Math.random() * 0.5 + 0.2;
+            this.depth = Math.random() * 0.6 + 0.4; // 3D depth layer
+        }
+
+        update() {
+            if (!prefersReducedMotion) {
+                // Parallax shift based on mouse position & depth
+                const px = (mouse.targetX - width / 2) * 0.02 * this.depth;
+                const py = (mouse.targetY - height / 2) * 0.02 * this.depth;
+
+                this.x += this.vx + px * 0.02;
+                this.y += this.vy + py * 0.02;
+
+                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                if (this.y > height) this.y = 0;
+            }
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = `${this.color}${this.alpha})`;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = this.color.includes("6, 182") ? "#06b6d4" : "#8b5cf6";
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    // Initialize particles
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    // Connect particles with faint glowing lines
+    function connect() {
+        const maxDist = 120;
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < maxDist) {
+                    const opacity = (1 - dist / maxDist) * 0.15;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.strokeStyle = `rgba(6, 182, 212, ${opacity})`;
+                    ctx.lineWidth = 0.75;
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    window.addEventListener("mousemove", (e) => {
+        mouse.targetX = e.clientX;
+        mouse.targetY = e.clientY;
+    });
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        for (let p of particles) {
+            p.update();
+            p.draw();
+        }
+        connect();
+
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+/* ---------------------------------------------------------
+   2. INTERACTIVE 3D CARD TILT
+--------------------------------------------------------- */
+function init3DTilt() {
+    // Avoid tilt on touch / mobile devices or reduced motion
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if ("ontouchstart" in window || navigator.maxTouchPoints > 0) return;
+
+    const cards = document.querySelectorAll(".tilt-card");
+
+    cards.forEach(card => {
+        card.addEventListener("mousemove", (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            // Compute angles (-10deg to 10deg)
+            const rotateX = ((y - centerY) / centerY) * -8;
+            const rotateY = ((x - centerX) / centerX) * 8;
+
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+        });
+
+        card.addEventListener("mouseleave", () => {
+            card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)";
+        });
+    });
+}
+
+/* ---------------------------------------------------------
+   3. AMBIENT MOUSE FOLLOWER
 --------------------------------------------------------- */
 function initMouseFollower() {
     const mouseGlow = document.getElementById("mouseGlow");
@@ -27,7 +178,6 @@ function initMouseFollower() {
     });
 
     function render() {
-        // Smooth interpolation
         currentX += (mouseX - currentX) * 0.12;
         currentY += (mouseY - currentY) * 0.12;
 
@@ -40,62 +190,80 @@ function initMouseFollower() {
 }
 
 /* ---------------------------------------------------------
-   2. MOBILE MENU TOGGLE
+   4. SCROLLSPY ACTIVE NAVIGATION TRACKER
 --------------------------------------------------------- */
-function initMobileMenu() {
-    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const menuIcon = document.getElementById("menuIcon");
-    const closeIcon = document.getElementById("closeIcon");
-    const navLinks = document.querySelectorAll(".mobile-nav-link");
+function initNavbarScrollSpy() {
+    const header = document.getElementById("mainHeader");
+    const sections = document.querySelectorAll("section[id]");
+    const navLinks = document.querySelectorAll("nav a[href^='#']");
 
-    if (!mobileMenuBtn || !mobileMenu) return;
-
-    function toggleMenu() {
-        const isHidden = mobileMenu.classList.contains("hidden");
-        if (isHidden) {
-            mobileMenu.classList.remove("hidden");
-            mobileMenu.classList.add("flex");
-            menuIcon.classList.add("hidden");
-            closeIcon.classList.remove("hidden");
+    window.addEventListener("scroll", () => {
+        // Shrink header on scroll
+        if (window.scrollY > 40) {
+            header.classList.add("scrolled", "py-2.5");
+            header.classList.remove("py-3", "sm:py-4");
         } else {
-            mobileMenu.classList.add("hidden");
-            mobileMenu.classList.remove("flex");
-            menuIcon.classList.remove("hidden");
-            closeIcon.classList.add("hidden");
+            header.classList.remove("scrolled", "py-2.5");
+            header.classList.add("py-3", "sm:py-4");
         }
-    }
 
-    mobileMenuBtn.addEventListener("click", toggleMenu);
+        // Active link tracking
+        let currentSectionId = "";
+        const scrollPosition = window.scrollY + 140;
 
-    navLinks.forEach(link => {
-        link.addEventListener("click", () => {
-            mobileMenu.classList.add("hidden");
-            mobileMenu.classList.remove("flex");
-            menuIcon.classList.remove("hidden");
-            closeIcon.classList.add("hidden");
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.offsetHeight;
+            if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                currentSectionId = section.getAttribute("id");
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove("text-cyan-400", "bg-white/10");
+            if (link.getAttribute("href") === `#${currentSectionId}`) {
+                link.classList.add("text-cyan-400", "bg-white/10");
+            }
         });
     });
 }
 
 /* ---------------------------------------------------------
-   3. NAVBAR SHRINK ON SCROLL
+   5. MOBILE MENU TOGGLE
 --------------------------------------------------------- */
-function initNavbarScroll() {
-    const mainHeader = document.getElementById("mainHeader");
-    if (!mainHeader) return;
+function initMobileMenu() {
+    const btn = document.getElementById("mobileMenuBtn");
+    const menu = document.getElementById("mobileMenu");
+    const menuIcon = document.getElementById("menuIcon");
+    const closeIcon = document.getElementById("closeIcon");
+    const links = document.querySelectorAll(".mobile-nav-link");
 
-    window.addEventListener("scroll", () => {
-        if (window.scrollY > 40) {
-            mainHeader.classList.add("scrolled");
+    if (!btn || !menu) return;
+
+    function toggle(open) {
+        const isHidden = typeof open === "boolean" ? !open : menu.classList.contains("hidden");
+        if (isHidden) {
+            menu.classList.remove("hidden");
+            menu.classList.add("flex");
+            menuIcon.classList.add("hidden");
+            closeIcon.classList.remove("hidden");
+            btn.setAttribute("aria-expanded", "true");
         } else {
-            mainHeader.classList.remove("scrolled");
+            menu.classList.add("hidden");
+            menu.classList.remove("flex");
+            menuIcon.classList.remove("hidden");
+            closeIcon.classList.add("hidden");
+            btn.setAttribute("aria-expanded", "false");
         }
-    });
+    }
+
+    btn.addEventListener("click", () => toggle());
+
+    links.forEach(l => l.addEventListener("click", () => toggle(false)));
 }
 
 /* ---------------------------------------------------------
-   4. CONTACT FORM LOGIC
+   6. CONTACT FORM SUBMISSION (FORMSUBMIT AJAX + FALLBACK)
 --------------------------------------------------------- */
 function initContactForm() {
     const form = document.getElementById("portfolioContactForm");
@@ -104,7 +272,7 @@ function initContactForm() {
     const submitBtn = document.getElementById("submitBtn");
     const submitBtnText = document.getElementById("submitBtnText");
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const name = document.getElementById("senderName").value.trim();
@@ -117,34 +285,54 @@ function initContactForm() {
             return;
         }
 
-        // Visual feedback
         submitBtn.disabled = true;
         const originalText = submitBtnText.textContent;
-        submitBtnText.textContent = "Opening Email Client...";
+        submitBtnText.textContent = "Sending Message...";
 
-        // Generate mailto link
-        const emailBody = `Hi Dipanshu,\n\nMy name is ${name} (${email}).\n\nMessage:\n${message}\n\nBest regards,\n${name}`;
-        const mailtoUrl = `mailto:dipanshukumar8075@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+        try {
+            // Send via FormSubmit AJAX endpoint
+            const response = await fetch("https://formsubmit.co/ajax/dipanshukumar8075@gmail.com", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    _subject: `Portfolio Contact: ${subject}`,
+                    message: message
+                })
+            });
 
-        // Open user's default email client
-        window.location.href = mailtoUrl;
-
-        showToast("Opening email client! Thanks for reaching out.");
-
-        setTimeout(() => {
-            submitBtn.disabled = false;
-            submitBtnText.textContent = "Message Prepared ✓";
-            form.reset();
-
+            if (response.ok) {
+                showToast("Message sent successfully! Thank you.");
+                submitBtnText.textContent = "Message Sent ✓";
+                form.reset();
+            } else {
+                // If endpoint blocked or CORS fails, trigger fallback mailto
+                triggerMailtoFallback(name, email, subject, message);
+            }
+        } catch (err) {
+            // Offline or network error fallback
+            triggerMailtoFallback(name, email, subject, message);
+        } finally {
             setTimeout(() => {
+                submitBtn.disabled = false;
                 submitBtnText.textContent = originalText;
-            }, 3000);
-        }, 1000);
+            }, 3500);
+        }
     });
+
+    function triggerMailtoFallback(name, email, subject, message) {
+        showToast("Opening default email client...");
+        const body = `Hi Dipanshu,\n\nName: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
+        window.location.href = `mailto:dipanshukumar8075@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
 }
 
 /* ---------------------------------------------------------
-   5. SEND VIA WHATSAPP HELPER
+   7. WHATSAPP & CLIPBOARD HELPERS
 --------------------------------------------------------- */
 function sendViaWhatsApp() {
     const name = document.getElementById("senderName") ? document.getElementById("senderName").value.trim() : "";
@@ -152,42 +340,33 @@ function sendViaWhatsApp() {
     const subject = document.getElementById("messageSubject") ? document.getElementById("messageSubject").value.trim() : "";
     const message = document.getElementById("senderMessage") ? document.getElementById("senderMessage").value.trim() : "";
 
-    let whatsappText = "Hello Dipanshu! ";
-    if (name) {
-        whatsappText += `I am ${name}. `;
-    }
-    if (email) {
-        whatsappText += `(Email: ${email}). `;
-    }
-    if (subject) {
-        whatsappText += `Regarding: ${subject}. `;
-    }
-    if (message) {
-        whatsappText += `Message: ${message}`;
-    } else {
-        whatsappText += "I checked your portfolio and would like to connect!";
-    }
+    let text = "Hello Dipanshu! ";
+    if (name) text += `I am ${name}. `;
+    if (email) text += `(Email: ${email}). `;
+    if (subject) text += `Regarding: ${subject}. `;
+    if (message) text += `Message: ${message}`;
+    else text += "I viewed your portfolio and would love to connect!";
 
-    const waUrl = `https://wa.me/918873384577?text=${encodeURIComponent(whatsappText)}`;
-    window.open(waUrl, "_blank");
+    const url = `https://wa.me/918873384577?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
 }
 
-/* ---------------------------------------------------------
-   6. COPY TO CLIPBOARD & TOAST
---------------------------------------------------------- */
 function copyToClipboard(text, customMessage = "Copied to clipboard!") {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast(customMessage);
-    }).catch(() => {
-        // Fallback for older browsers
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
-        showToast(customMessage);
-    });
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast(customMessage)).catch(() => fallbackCopy(text, customMessage));
+    } else {
+        fallbackCopy(text, customMessage);
+    }
+}
+
+function fallbackCopy(text, msg) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    document.body.removeChild(area);
+    showToast(msg);
 }
 
 function showToast(message) {
