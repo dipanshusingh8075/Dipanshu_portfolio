@@ -147,11 +147,13 @@ function init3DTilt() {
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
 
-            // Compute angles (-10deg to 10deg)
-            const rotateX = ((y - centerY) / centerY) * -8;
-            const rotateY = ((x - centerX) / centerX) * 8;
+            // Compute subtle angles (-7deg to 7deg)
+            const rotateX = ((y - centerY) / centerY) * -7;
+            const rotateY = ((x - centerX) / centerX) * 7;
 
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`;
+            card.style.setProperty("--mouse-x", `${x}px`);
+            card.style.setProperty("--mouse-y", `${y}px`);
         });
 
         card.addEventListener("mouseleave", () => {
@@ -195,9 +197,9 @@ function initMouseFollower() {
 function initNavbarScrollSpy() {
     const header = document.getElementById("mainHeader");
     const sections = document.querySelectorAll("section[id]");
-    const navLinks = document.querySelectorAll("nav a[href^='#']");
+    const navLinks = document.querySelectorAll("nav a[href^='#'], #mobileMenu a[href^='#']");
 
-    window.addEventListener("scroll", () => {
+    function updateActiveNav() {
         // Shrink header on scroll
         if (window.scrollY > 40) {
             header.classList.add("scrolled", "py-2.5");
@@ -208,8 +210,8 @@ function initNavbarScrollSpy() {
         }
 
         // Active link tracking
-        let currentSectionId = "";
-        const scrollPosition = window.scrollY + 140;
+        let currentSectionId = "hero";
+        const scrollPosition = window.scrollY + 180;
 
         sections.forEach(section => {
             const sectionTop = section.offsetTop;
@@ -220,46 +222,82 @@ function initNavbarScrollSpy() {
         });
 
         navLinks.forEach(link => {
-            link.classList.remove("text-cyan-400", "bg-white/10");
-            if (link.getAttribute("href") === `#${currentSectionId}`) {
-                link.classList.add("text-cyan-400", "bg-white/10");
+            const target = link.getAttribute("href");
+            if (target === `#${currentSectionId}`) {
+                link.classList.add("nav-link-active");
+            } else {
+                link.classList.remove("nav-link-active");
             }
         });
-    });
+    }
+
+    window.addEventListener("scroll", updateActiveNav, { passive: true });
+    updateActiveNav(); // Trigger on initial load
 }
 
 /* ---------------------------------------------------------
-   5. MOBILE MENU TOGGLE
+   5. MOBILE MENU WITH BUTTERY TRANSITION & ARIA ACCESSIBILITY
 --------------------------------------------------------- */
 function initMobileMenu() {
     const btn = document.getElementById("mobileMenuBtn");
     const menu = document.getElementById("mobileMenu");
     const menuIcon = document.getElementById("menuIcon");
     const closeIcon = document.getElementById("closeIcon");
-    const links = document.querySelectorAll(".mobile-nav-link");
+    const links = document.querySelectorAll("#mobileMenu a");
 
     if (!btn || !menu) return;
 
-    function toggle(open) {
-        const isHidden = typeof open === "boolean" ? !open : menu.classList.contains("hidden");
-        if (isHidden) {
-            menu.classList.remove("hidden");
-            menu.classList.add("flex");
+    // Ensure menu starts with collapsed class
+    menu.classList.add("menu-collapsed");
+    menu.classList.remove("hidden");
+
+    function toggleMenu(forceOpen) {
+        const isOpen = typeof forceOpen === "boolean" 
+            ? forceOpen 
+            : menu.classList.contains("menu-collapsed");
+
+        if (isOpen) {
+            menu.classList.remove("menu-collapsed");
+            menu.classList.add("menu-expanded");
             menuIcon.classList.add("hidden");
             closeIcon.classList.remove("hidden");
             btn.setAttribute("aria-expanded", "true");
         } else {
-            menu.classList.add("hidden");
-            menu.classList.remove("flex");
+            menu.classList.remove("menu-expanded");
+            menu.classList.add("menu-collapsed");
             menuIcon.classList.remove("hidden");
             closeIcon.classList.add("hidden");
             btn.setAttribute("aria-expanded", "false");
         }
     }
 
-    btn.addEventListener("click", () => toggle());
+    btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleMenu();
+    });
 
-    links.forEach(l => l.addEventListener("click", () => toggle(false)));
+    // Close automatically when any link in mobile drawer is clicked
+    links.forEach(link => {
+        link.addEventListener("click", () => {
+            toggleMenu(false);
+        });
+    });
+
+    // Close on click outside header
+    document.addEventListener("click", (e) => {
+        const header = document.getElementById("mainHeader");
+        if (header && !header.contains(e.target)) {
+            toggleMenu(false);
+        }
+    });
+
+    // Close on ESC key press
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && menu.classList.contains("menu-expanded")) {
+            toggleMenu(false);
+            btn.focus();
+        }
+    });
 }
 
 /* ---------------------------------------------------------
@@ -382,4 +420,13 @@ function showToast(message) {
         toast.classList.remove("translate-y-0", "opacity-100");
         toast.classList.add("translate-y-20", "opacity-0", "pointer-events-none");
     }, 3200);
+}
+
+function notifyComingSoon(project = "Full-Stack MERN Project") {
+    showToast(`⚡ ${project} is in active development! Repo commits coming soon.`);
+}
+
+function handleResumeDownload(event) {
+    // Graceful feedback when user clicks resume download
+    showToast("Opening / Downloading Dipanshu's Resume (CV)...");
 }
